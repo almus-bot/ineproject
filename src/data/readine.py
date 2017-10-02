@@ -37,6 +37,7 @@ nac_ent = nacimientos['NatEntFedResMad']
 #### Nacimientos por grupo de edad de la madre, estado y municipio de residencia sólo 2012
 nac_edad = nacimientos['NacimientosGruposEdad']
 nac_edad.estado = nac_edad.estado.map(lambda x: x.replace("Estado","").strip())
+nac_edad.municipio = nac_edad.municipio.map(lambda x: x.strip())
 nac_edad = nac_edad.drop("total", axis=1)
 
 #### Nacimientos por edad de la madre, situación conyugal solo 2012
@@ -101,3 +102,65 @@ for i in range(len(nac_año)):
 
 print(diff)
 
+# dataframe con estado-municipio-fechas
+def gen_data(results):
+	df = pd.DataFrame()
+	for m in results:	
+		l = []
+		for año in results[m].values():
+			l.extend(año)
+
+		#dfaux = pd.DataFrame({"Estado":m[0], "Municipio":m[1],"Fechas" :l})
+		df = pd.concat([
+			df,
+			pd.DataFrame({"Estado":m[0], "Municipio":m[1],"Fechas" :l})],
+			ignore_index=True)
+	return df
+
+tabla = gen_data(results)
+
+#### generar el grupo de edad de la madre según municipio ####
+
+## probabilidades para los grupos  ##
+
+nac_edad["total"] = nac_edad.iloc[:,2:].sum(axis=1)
+
+# long format
+grupos= pd.melt(nac_edad, id_vars=nac_edad.columns[0:2], value_vars=nac_edad.columns[2:-1], var_name="Grupo", value_name="Nacimientos")
+
+# columna de totales
+t = pd.concat([nac_edad["total"]]*len(grupos["Grupo"].unique()))
+grupos["total"] = list(t)
+
+# columna de proporciones
+grupos["prob"] = grupos["Nacimientos"]/grupos["total"]
+
+# asignar grupo
+import random
+tabla["Grupos de Edad"] = "-"  # columna de grupos vacía
+tabla.index = np.arange(len(tabla))
+
+def choose_group(tabla, grupos):
+###
+	ind = 0
+	while ind < len(tabla):
+		e =tabla.iloc[ind].Estado
+		m =tabla.iloc[ind].Municipio
+
+		t = tabla[tabla.Estado==e]
+		t = t[t.Municipio==m]
+		
+		g = grupos[grupos.estado==e]
+		g = g[g.municipio==m]
+
+		choices = random.choices(population=list(g.Grupo), weights=list(g.prob), k=len(t))
+		tabla["Grupos de Edad"][ind:(ind+len(t))] = choices
+
+		ind += len(t)
+
+# generando la columna de grupos de edad
+choose_group(tabla, grupos)
+
+
+#### Generar el sexo del niño ####
+#### Generar la situación conyugal ####
