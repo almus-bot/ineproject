@@ -78,7 +78,8 @@ grupos["total"] = list(pd.concat([nac_edad["total"]]*len(grupos["Grupo"].unique(
 # columna de proporciones
 grupos["prob"] = grupos["Nacimientos"]/grupos["total"]
 tabla.index = np.arange(len(tabla))
-
+print("grupos de edad ")
+print(grupos.head())
 # generando la columna de grupos de edad
 gen.choose_var(tabla, grupos, "estado","grupo","municipio")
 
@@ -118,7 +119,7 @@ gen.choose_var(tabla, sit_cony, "grupo", "situación")
 print("Guardando datos en disco")
 tabla.to_pickle("../../data/processed/inedata.pkl")
 
-print(tabla.head(15))
+#print(tabla.head(15))
 #sexo.to_pickle("../../data/processed/probsexo.pkl")
 #grupos.to_pickle("../../data/processed/probedad.pkl")
 #sit_cony.to_pickle("../../data/processed/probsitcony.pkl")

@@ -31,7 +31,10 @@ x = np.random.exponential(2.086, 1)
 def generate_birth_dates(municipio_row):
 	print("Generando nacimientos")
 	fechas_nac = {}
+	print("para el municipio ", municipio_row["municipio"])
+		
 	for año in municipio_row[2:len(municipio_row)].index:
+		print("para el año ",  año)
 		# fecha inicial: primer día del año
 		fechas = [pd.Timestamp(str(año) + "0101")]
 		fechas.append(fechas[-1] + pd.to_timedelta(np.random.exponential(365/(municipio_row[año]), 1)[0], unit="D"))
@@ -42,6 +45,7 @@ def generate_birth_dates(municipio_row):
 
 		fechas.pop()  # la última es del próximo año, no interesa
 		fechas_nac[año]	= fechas # devuelve diccionario con las fechas nacimientos de cada año
+		print("número de nacimientos generados: " ,len(fechas))
 	print("Done")
 	return fechas_nac
 
@@ -106,7 +110,7 @@ def choose_sex(tabla, sexo):
 # col2 = columna para subsección
 # var = nombre de la variable a generar
 # *todos los nombres de columna en minúsculas
-def choose_var(tabla, grupos, col1, var, col2=True):
+def choose_var(tabla, grupos, col1, var, col2=-1):
 ###
 	tabla.columns = [i.lower() for i in tabla.columns]
 	grupos.columns = [i.lower() for i in grupos.columns]
@@ -114,20 +118,20 @@ def choose_var(tabla, grupos, col1, var, col2=True):
 	tabla[var] = "-"
 	print("Generando ", var)
 	
-	if col2:
+	if col2==-1:
 		pares = tabla.loc[:,[col1]].drop_duplicates()
 		for i in range(len(pares)):
 			c1 =pares.iloc[i][col1]
 			t = tabla.loc[tabla[col1] == c1]
 			g = grupos.loc[grupos[col1] == c1]		
 			choices = random.choices(population=list(g[var]), weights=list(g.prob), k=len(t))
-			
 			#tabla["Grupos de Edad"].loc[ind:(ind+len(t))] = choices
-			tabla[var].loc[t.index] = choices
+			tabla[var].iloc[t.index] = choices
 		print("Done")
 	else:
 		col2 = col2.lower()
 		pares = tabla.loc[:,[col1,col2]].drop_duplicates()
+		pares.index = np.arange(len(pares))
 		for i in range(len(pares)):
 			c1 =pares.iloc[i][col1]
 			c2 =pares.iloc[i][col2]
@@ -135,6 +139,6 @@ def choose_var(tabla, grupos, col1, var, col2=True):
 			g = grupos.loc[(grupos[col1] == c1) & grupos[col2].isin([c2])]		
 			choices = random.choices(population=list(g[var]), weights=list(g.prob), k=len(t))
 			#tabla["Grupos de Edad"].loc[ind:(ind+len(t))] = choices
-			tabla[var].loc[t.index] = choices
+			tabla[var].iloc[t.index] = choices
 		print("Done")
 		
