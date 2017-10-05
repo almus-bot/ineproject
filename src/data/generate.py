@@ -65,45 +65,6 @@ def gen_data(results):
 	print("Done")
 	return df
 
-# Generar los grupos de edad y los anexa a la tabla principal
-def choose_group(tabla, grupos):
-###
-	pares = tabla.loc[:,["Estado","Municipio"]].drop_duplicates()
-	for i in range(len(pares)):
-		e =pares.iloc[i].Estado
-		m =pares.iloc[i].Municipio
-		print("choosing group for: ", e,m)
-		t = tabla.loc[(tabla.Estado == e) & tabla.Municipio.isin([m])]
-		g = grupos.loc[(grupos.estado == e) & grupos.municipio.isin([m])]		
-		choices = random.choices(population=list(g.Grupo), weights=list(g.prob), k=len(t))
-		
-		#tabla["Grupos de Edad"].loc[ind:(ind+len(t))] = choices
-		tabla["Grupos de Edad"].loc[t.index] = choices
-
-		
-# Genera el sexo de cada nacimiento y actualiza la tabla principal
-def choose_sex(tabla, sexo):
-	# posibles combinaciones de años y grupos en la tabla
-	pares = tabla.loc[:,["Año","Grupos de Edad"]].drop_duplicates()
-
-	for i in range(len(pares)):
-		# para cada par año-grupo
-		grupo_edad = pares.iloc[i]["Grupos de Edad"]
-		y = pares.iloc[i].Año
-		print("choosing group for: ", grupo_edad, y)
-
-		# elegir los registros que cumplan
-		t = tabla.loc[(tabla.Año == y) & tabla["Grupos de Edad"].isin([grupo_edad])]
-		s = sexo.loc[(sexo.Año == y) & sexo.Grupo.isin([grupo_edad])]
-		#sex.index = np.arange(len(sex))
-		print("Choices: ", s)
-
-		choices = random.choices(population=list(s.Sexo), weights=list(s.prob), k=len(t))
-		print("index: ", t.index)
-		print("matching reg: ",t.head())
-		# colocando los valores generados
-		tabla["Sexo"].loc[t.index] = choices
-
 # tabla = tabla principal
 # grupos = dataframe con la variable de interés agrupada y sus probabilidades
 # col1 = columna para subsección
@@ -111,34 +72,63 @@ def choose_sex(tabla, sexo):
 # var = nombre de la variable a generar
 # *todos los nombres de columna en minúsculas
 def choose_var(tabla, grupos, col1, var, col2=-1):
-###
-	tabla.columns = [i.lower() for i in tabla.columns]
-	grupos.columns = [i.lower() for i in grupos.columns]
+
 	col1, var = col1.lower(), var.lower()
 	tabla[var] = "-"
 	print("Generando ", var)
+	emergency_g = grupos[var].unique()
+	emergency_p = [1/len(emergency_g)]*len(emergency_g)
 	
 	if col2==-1:
 		pares = tabla.loc[:,[col1]].drop_duplicates()
+		print("pares creados, sin duplicados")
+		pares.index = np.arange(len(pares))
+		print("inicia bucle para cada par")
 		for i in range(len(pares)):
-			c1 =pares.iloc[i][col1]
+			c1 = pares.iloc[i][col1]
 			t = tabla.loc[tabla[col1] == c1]
-			g = grupos.loc[grupos[col1] == c1]		
-			choices = random.choices(population=list(g[var]), weights=list(g.prob), k=len(t))
-			#tabla["Grupos de Edad"].loc[ind:(ind+len(t))] = choices
-			tabla[var].iloc[t.index] = choices
+			g = grupos.loc[grupos[col1] == c1]	
+			if not g.empty:
+				print("genera choices")	
+				print("asigna a la tabla")
+				print(g.prob, "sum:", g.prob.sum())
+				choices = random.choices(population=list(g[var]), weights=list(g.prob), k=len(t))
+				#tabla["Grupos de Edad"].loc[ind:(ind+len(t))] = choices
+				tabla[var].loc[t.index] = choices
+
+			else:
+				print("problema en ", c1)
+				print("grupos ", g)
+				choices = random.choices(population=list(emergency_g), weights=list(emergency_p), k=len(t))
+				#continue
+				print("asigna a la tabla")
+				tabla[var].loc[t.index] = choices
 		print("Done")
 	else:
 		col2 = col2.lower()
 		pares = tabla.loc[:,[col1,col2]].drop_duplicates()
+		print("pares creados, sin duplicados")
 		pares.index = np.arange(len(pares))
+		print("inicia bucle para cada par")
 		for i in range(len(pares)):
+
 			c1 =pares.iloc[i][col1]
 			c2 =pares.iloc[i][col2]
 			t = tabla.loc[(tabla[col1] == c1) & tabla[col2].isin([c2])]
-			g = grupos.loc[(grupos[col1] == c1) & grupos[col2].isin([c2])]		
-			choices = random.choices(population=list(g[var]), weights=list(g.prob), k=len(t))
-			#tabla["Grupos de Edad"].loc[ind:(ind+len(t))] = choices
-			tabla[var].iloc[t.index] = choices
+			g = grupos.loc[(grupos[col1] == c1) & grupos[col2].isin([c2])]	
+			if not g.empty:
+				print("genera choices")
+				print(g.prob, "\n sum: ", g.prob.sum())
+				choices = random.choices(population=list(g[var]), weights=list(g.prob), k=len(t))
+				#tabla["Grupos de Edad"].loc[ind:(ind+len(t))] = choices
+				print("asigna a la tabla")
+				tabla[var].loc[t.index] = choices
+			else:
+				print("problema en ", c1 , c2)
+				print("grupos ", g)
+				choices = random.choices(population=list(emergency_g), weights=list(emergency_p), k=len(t))
+				#continue
+				print("asigna a la tabla")
+				tabla[var].loc[t.index] = choices
 		print("Done")
 		
