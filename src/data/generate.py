@@ -43,6 +43,7 @@ def generate_birth_dates(municipio_row):
 		while fechas[-1].year == fechas[-2].year:
 			fechas.append(fechas[-1] + pd.to_timedelta(np.random.exponential(365/(municipio_row[año]),1)[0], unit="D"))
 
+		fechas.pop(0) # la primera no es aleatoria
 		fechas.pop()  # la última es del próximo año, no interesa
 		fechas_nac[año]	= fechas # devuelve diccionario con las fechas nacimientos de cada año
 		print("número de nacimientos generados: " ,len(fechas))
