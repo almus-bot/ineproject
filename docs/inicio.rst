@@ -3,17 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to INE Project's documentation!
-=======================================
+Tablero de Datos Interactivo para la Inteligencia Popular
+=========================================================
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contenidos:
+
+   intro
+   datos_fuente
 
 
 
-Indices and tables
-==================
+Índices y tablas
+================
 
 * :ref:`genindex`
 * :ref:`modindex`
