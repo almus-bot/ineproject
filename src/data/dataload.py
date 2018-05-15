@@ -17,7 +17,7 @@ divorcios = {i:data_dict[i] for i in data_dict.keys() if i.startswith("Div")}
 limpieza y organización de los dataframes de nacimientos
 """
 
-## nacimientos por año de registro, estado y municipio del 2008 al 2012
+## Nacimientos por año de registro, estado y municipio del 2008 al 2012
 print("Nacimientos por año")
 nac_año = nacimientos['NacimientosAnoRegistro']
 
@@ -47,7 +47,7 @@ nac_edad.estado = nac_edad.estado.map(lambda x: x.replace("Estado","").strip())
 nac_edad.municipio = nac_edad.municipio.map(lambda x: x.strip())
 nac_edad = nac_edad.drop("total", axis=1)
 
-#### Nacimientos por edad de la madre, situación conyugal solo 2012
+#### Nacimientos por edad de la madre, situación conyugal sólo 2012
 print("Nacimientos por situación conyugal")
 nac_edad_cony = nacimientos['NatGEMadSitConMad']
 #nac_edad_cony = nac_edad_cony.drop("total", axis=1)
@@ -60,11 +60,10 @@ DataFrame objetivo:
 	año entidad municipio sexo edad defunciones
 """
 
-# limpiar espacios en entidades y municipios / long format
+# limpiar espacios en entidades y municipios / convirtiendo en long format
 for i in mortalidad:
 	mortalidad[i].entidad = mortalidad[i].entidad.map(lambda x: x.strip())
 	mortalidad[i].entidad = mortalidad[i].entidad.map(lambda x: x.replace("Estado","").strip())
-
 
 	if "municipio" in mortalidad[i].columns.values:
 		mortalidad[i].municipio = mortalidad[i].municipio.map(lambda x: x.strip())
@@ -75,7 +74,6 @@ for i in mortalidad:
 		mortalidad[i] = pd.melt(mortalidad[i], id_vars=["entidad"], 
 			value_vars=list(mortalidad[i].columns.values[1:]), 
 			value_name="defunciones", var_name="year")
-
 
 # Defunciones registradas de hombres por año de registro, según entidad federal de ocurrencia, 2001 - 2012
 mort_hombre = mortalidad['MortHombxAnoEntFedOcu']
@@ -109,7 +107,33 @@ DataFrame objetivo:
 """
 
 # Divorcios
-div_dur_hijos = divorcios["DivorSentDuraMatrNumHij"]
-div_dur = divorcios["DivorSentDuraMatriEF"]
-div_causa = divorcios["DivorCauFundSentEF"]
-div_entidad = divorcios["Divorcios"]
+#div_dur_hijos = divorcios["DivorSentDuraMatrNumHij"] # sólo 2012
+#div_dur = divorcios["DivorSentDuraMatriEF"] # sólo 2012
+#div_causa = divorcios["DivorCauFundSentEF"]  # sólo 2012
+#div_entidad = divorcios["Divorcios"] # 2008-2012
+
+def headdf(data):
+    for i in data:
+        print(data[i].head())
+        
+def clean_make_long_format(data, name): 
+    for i in data:
+        # reemplazar "-" por 0 para las cantidades totales
+        data[i].replace("-", 0, inplace=True)
+        # limpia espacios en blanco inicial y final
+        for c in data[i].columns:
+            data[i][c] = data[i][c].map(lambda x: x.strip() if type(x) is str else x)
+        # long format
+        data[i] = pd.melt(data[i], id_vars=[data[i].columns[0]], 
+            			value_vars=list(data[i].columns.values[1:]), 
+            			value_name=name)
+
+headdf(divorcios)  
+clean_make_long_format(divorcios, "divorcios")
+headdf(divorcios) 
+
+# SUICIDIOS
+headdf(suicidios)
+clean_make_long_format(suicidios, "suicidios")
+headdf(suicidios)
+
