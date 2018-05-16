@@ -70,19 +70,26 @@ tabla.to_pickle("../../data/processed/inedata.pkl")
 #ld = pd.read_pickle("../../data/processed/inedata.pkl")
 
 #----
-def make_probs(data):
+
+# calcular las proporciones para categorias y variables
+def make_probs(data, tot_var):
     for i in data:
-        var = data[i].columns[1]
-        print(var)
-        r = data[i].groupby(var).sum()
-        n = data[i][var].unique().size
-        nr = pd.DataFrame(np.repeat(r["suicidios"], n))
-        dff = nr.reset_index(drop=True)
-        data[i] = pd.concat([data[i], dff], ignore_index=True, axis=1)
-        print(data[i].head())
-        data[i]["prob"] = data[i][2]/data[i][3]
+        var = data[i].columns[0]
+        g = data[i].groupby("variable").sum()
+        n = data[i][var].unique().size   # numero de categorias en la variable
+        aux_df = pd.DataFrame(np.repeat(g[tot_var], n))
+        df = aux_df.reset_index(drop=True)
+        #cols = data[i].columns
+       # data[i] = pd.concat([data[i], df], ignore_index=True, axis=1)
 
-make_probs(suicidios)
+        data[i]["prob"] = data[i][tot_var]/df[tot_var]
 
-#Probar este codigo para generar las prob concatenadas
-# probado. Comprobar que da ! para cada año. Y arreglar lo de los nombres de las columnas
+# verificar que todas las proporciones den 1      
+def verify_probs(data):
+    for i in data:
+        print(data[i].groupby(["variable"]).sum())
+
+# falta probar que sirvan para los demas dataframes de nac mort matr, div    
+
+
+        
