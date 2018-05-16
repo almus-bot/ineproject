@@ -122,8 +122,14 @@ def clean_make_long_format(data, name, idvars):
         data[i].columns.values[data[i].columns == "estado"] = "entidad"
         # reemplazar "-" por 0 para las cantidades totales
         print("replacing...")
-        data[i].replace(["-", "Estado", "Hombres", "Mujeres"], [0, "", "M","F"], inplace=True)
-        data[i].replace("Estado", "", inplace=True)
+        data[i].replace(["-", "Hombres", "Mujeres"], [0, "M","F"], inplace=True)
+                
+        if "entidad" in data[i].columns:
+            data[i].entidad = data[i].entidad.map(lambda x: x.replace("Estado","").strip())
+        
+        if "municipio" in data[i].columns.values:
+            data[i] = data[i][data[i].municipio.isin(["Libertador"]) | ~data[i].entidad.isin(["Distrito Capital"])]
+        
         # limpia espacios en blanco inicial y final
         print("cleaning..")
         for c in data[i].columns:
@@ -134,13 +140,11 @@ def clean_make_long_format(data, name, idvars):
         except:
             pass
         
-        if "municipio" in data[i].columns.values:
-            data[i] = data[i][data[i].municipio.isin(["Libertador"]) | ~data[i].entidad.isin(["Distrito Capital"])]
-        
+      
         # long format
         print("melting...")
-        print("column id ",  data[i].columns.values[0:idvar])
-        print("vars ", data[i].columns.values[idvar:])
+#        print("column id ",  data[i].columns.values[0:idvar])
+#        print("vars ", data[i].columns.values[idvar:])
         data[i] = pd.melt(data[i], id_vars=list(data[i].columns.values[0:idvar]), 
             			value_vars=list(data[i].columns.values[idvar:]), 
             			value_name=name)
