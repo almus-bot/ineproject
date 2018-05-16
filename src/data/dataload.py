@@ -137,3 +137,6 @@ headdf(suicidios)
 clean_make_long_format(suicidios, "suicidios")
 headdf(suicidios)
 
+## generar totales y proporciones para suicidios, segun situación conyugal, entidad, nivel educativo, año
+
+

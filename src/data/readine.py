@@ -68,3 +68,21 @@ tabla.to_pickle("../../data/processed/inedata.pkl")
 
 # cargar nuevamente
 #ld = pd.read_pickle("../../data/processed/inedata.pkl")
+
+#----
+def make_probs(data):
+    for i in data:
+        var = data[i].columns[1]
+        print(var)
+        r = data[i].groupby(var).sum()
+        n = data[i][var].unique().size
+        nr = pd.DataFrame(np.repeat(r["suicidios"], n))
+        dff = nr.reset_index(drop=True)
+        data[i] = pd.concat([data[i], dff], ignore_index=True, axis=1)
+        print(data[i].head())
+        data[i]["prob"] = data[i][2]/data[i][3]
+
+make_probs(suicidios)
+
+#Probar este codigo para generar las prob concatenadas
+# probado. Comprobar que da ! para cada año. Y arreglar lo de los nombres de las columnas
