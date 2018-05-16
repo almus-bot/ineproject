@@ -111,9 +111,13 @@ DataFrame objetivo:
 #div_causa = divorcios["DivorCauFundSentEF"]  # sólo 2012
 #div_entidad = divorcios["Divorcios"] # 2008-2012
 
-def headdf(data):
+def headdf(data,rows=10):
     for i in data:
-        print(data[i].head())
+        print(data[i].head(rows))
+        
+def taildf(data,rows=10):
+    for i in data:
+        print(data[i].tail(rows))
         
 def clean_make_long_format(data, name, idvars): 
     for i, idvar in zip(data, idvars):
