@@ -53,7 +53,6 @@ nac_edad_cony = nacimientos['NatGEMadSitConMad']
 #nac_edad_cony = nac_edad_cony.drop("total", axis=1)
 print("Datos cargados")
 
-
 """
 limpieza y organización de los dataframes de Mortalidad 
 DataFrame objetivo:  
@@ -116,26 +115,72 @@ def headdf(data):
     for i in data:
         print(data[i].head())
         
-def clean_make_long_format(data, name): 
-    for i in data:
+def clean_make_long_format(data, name, idvars): 
+    for i, idvar in zip(data, idvars):
+        print("adjusting columns...")
+        data[i].columns = [str(x).lower() for x in data[i].columns]
+        data[i].columns.values[data[i].columns == "estado"] = "entidad"
         # reemplazar "-" por 0 para las cantidades totales
-        data[i].replace("-", 0, inplace=True)
+        print("replacing...")
+        data[i].replace(["-", "Estado", "Hombres", "Mujeres"], [0, "", "M","F"], inplace=True)
+        data[i].replace("Estado", "", inplace=True)
         # limpia espacios en blanco inicial y final
+        print("cleaning..")
         for c in data[i].columns:
             data[i][c] = data[i][c].map(lambda x: x.strip() if type(x) is str else x)
+        
+        try:
+            data[i] = data[i].drop("total", axis=1,)
+        except:
+            pass
+        
+        if "municipio" in data[i].columns.values:
+            data[i] = data[i][data[i].municipio.isin(["Libertador"]) | ~data[i].entidad.isin(["Distrito Capital"])]
+        
         # long format
-        data[i] = pd.melt(data[i], id_vars=[data[i].columns[0]], 
-            			value_vars=list(data[i].columns.values[1:]), 
+        print("melting...")
+        print("column id ",  data[i].columns.values[0:idvar])
+        print("vars ", data[i].columns.values[idvar:])
+        data[i] = pd.melt(data[i], id_vars=list(data[i].columns.values[0:idvar]), 
+            			value_vars=list(data[i].columns.values[idvar:]), 
             			value_name=name)
+        print("done")
 
+nacimientos = {i:data_dict[i] for i in data_dict.keys() if i.startswith("Na")}
+mortalidad = {i:data_dict[i] for i in data_dict.keys() if i.startswith("Mort")}
+matrimonios = {i:data_dict[i] for i in data_dict.keys() if i.startswith("Mat")}
+suicidios = {i:data_dict[i] for i in data_dict.keys() if i.startswith("Sui")}
+divorcios = {i:data_dict[i] for i in data_dict.keys() if i.startswith("Div")}
+
+# Nacimientos
+headdf(nacimientos)
+clean_make_long_format(nacimientos, "nacimientos", [1,2,2,1,2])
+headdf(nacimientos)
+
+# Mortalidad
+headdf(mortalidad)
+clean_make_long_format(mortalidad, "mortalidad", [1,2,1,1,1,2])
+headdf(mortalidad)
+
+# Matrimonios
+matrim2 = matrimonios.copy()
+aux = matrimonios.pop("MatCondAlfConyEntFed")
+
+headdf(matrimonios)
+clean_make_long_format(matrimonios, "matrimonios", [1,1,1,2,1,1])
+headdf(matrimonios)
+
+matrimonios["MatCondAlfConyEntFed"] = aux
+
+# Suicidios
+headdf(suicidios)
+clean_make_long_format(suicidios, "suicidios",[1,1,1])
+headdf(suicidios)
+
+# Divorcios
 headdf(divorcios)  
-clean_make_long_format(divorcios, "divorcios")
+clean_make_long_format(divorcios, "divorcios", [1,1,1,1])
 headdf(divorcios) 
-
-# SUICIDIOS
-headdf(suicidios)
-clean_make_long_format(suicidios, "suicidios")
-headdf(suicidios)
 
 ## generar totales y proporciones para suicidios, segun situación conyugal, entidad, nivel educativo, año
 
