@@ -72,17 +72,24 @@ tabla.to_pickle("../../data/processed/inedata.pkl")
 #----
 
 # calcular las proporciones para categorias y variables
-def make_probs(data, tot_var):
-    for i in data:
-        var = data[i].columns[0]
-        g = data[i].groupby("variable").sum()
-        n = data[i][var].unique().size   # numero de categorias en la variable
-        aux_df = pd.DataFrame(np.repeat(g[tot_var], n))
-        df = aux_df.reset_index(drop=True)
-        #cols = data[i].columns
-       # data[i] = pd.concat([data[i], df], ignore_index=True, axis=1)
-
-        data[i]["prob"] = data[i][tot_var]/df[tot_var]
+#def make_probs(data, tot_var):
+#    for i in data:
+#        var = data[i].columns[0]
+#        g = data[i].groupby("variable").sum()
+#        print(var)
+#        n = data[i][var].unique().size   # numero de categorias en la variable
+#        print(n)
+#        aux_df = pd.DataFrame(np.repeat(g[tot_var], n))
+#        print(aux_df)
+#        aux_df.sort_index(inplace=True)
+#        print(aux_df)
+#        df = aux_df.reset_index(drop=True)
+#        
+#        #cols = data[i].columns
+#       # data[i] = pd.concat([data[i], df], ignore_index=True, axis=1)
+#        data[i].sort_values(["variable", var], inplace=True)
+#        print(data[i].head())
+#        data[i]["prob"] = data[i][tot_var]/df[tot_var]
 
 # verificar que todas las proporciones den 1      
 def verify_probs(data):
@@ -91,5 +98,22 @@ def verify_probs(data):
 
 # falta probar que sirvan para los demas dataframes de nac mort matr, div    
 
+make_probs(sui, "suicidios")
+make_probs(div, "divorcios")
 
-        
+
+
+def make_probs2(data, tot_var):
+    for i in data:
+            g = data[i].groupby("variable").sum()
+            g.reset_index(inplace=True)
+            data[i] = data[i].merge(g, left_on='variable', right_on='variable', 
+                                    how='outer')
+            print(data[i].head())
+            
+            data[i]["prob"] = data[i][tot_var+"_x"]/data[i][tot_var+"_y"]
+            data[i].drop([tot_var+"_y"], axis=1, inplace=True)
+            data[i].fillna(0, inplace=True) # Nan por div entre cero
+
+make_probs2(suicidios, "suicidios")
+make_probs2(divorcios, "divorcios")
