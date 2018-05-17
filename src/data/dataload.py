@@ -122,8 +122,10 @@ def taildf(data,rows=10):
 def clean_make_long_format(data, name, idvars): 
     for i, idvar in zip(data, idvars):
         print("adjusting columns...")
-        data[i].columns = [str(x).lower() for x in data[i].columns]
-        data[i].columns.values[data[i].columns == "estado"] = "entidad"
+        #data[i].columns = [str(x).lower() for x in data[i].columns]
+        data[i].rename(columns=str.lower, inplace=True)
+        #data[i].columns.values[data[i].columns == "estado"] = "entidad"
+        data[i].rename({"estado": "entidad"})
         # reemplazar "-" por 0 para las cantidades totales
         print("replacing...")
         data[i].replace(["-", "Hombres", "Mujeres"], [0, "M","F"], inplace=True)
@@ -142,8 +144,7 @@ def clean_make_long_format(data, name, idvars):
         try:
             data[i] = data[i].drop("total", axis=1,)
         except:
-            pass
-        
+            pass        
       
         # long format
         print("melting...")
@@ -171,14 +172,15 @@ clean_make_long_format(mortalidad, "mortalidad", [1,2,1,1,1,2])
 headdf(mortalidad)
 
 # Matrimonios
-matrim2 = matrimonios.copy()
+#matrim2 = matrimonios.copy()
 aux = matrimonios.pop("MatCondAlfConyEntFed")
-
+aux.rename(columns={"condición": "variable"}, inplace=True)
 headdf(matrimonios)
 clean_make_long_format(matrimonios, "matrimonios", [1,1,1,2,1,1])
 headdf(matrimonios)
 
-matrimonios["MatCondAlfConyEntFed"] = aux
+#matrimonios["MatCondAlfConyEntFed"] = aux
+
 
 # Suicidios
 headdf(suicidios)

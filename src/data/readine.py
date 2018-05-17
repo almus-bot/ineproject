@@ -96,24 +96,34 @@ def verify_probs(data):
     for i in data:
         print(data[i].groupby(["variable"]).sum())
 
-# falta probar que sirvan para los demas dataframes de nac mort matr, div    
-
-make_probs(sui, "suicidios")
-make_probs(div, "divorcios")
-
-
-
 def make_probs2(data, tot_var):
     for i in data:
-            g = data[i].groupby("variable").sum()
+            g = data[i].groupby("variable").sum()  # totales según los grupos
             g.reset_index(inplace=True)
+            # anexa los totales al dataframe
             data[i] = data[i].merge(g, left_on='variable', right_on='variable', 
                                     how='outer')
-            print(data[i].head())
-            
+            # calcula las proporciones
             data[i]["prob"] = data[i][tot_var+"_x"]/data[i][tot_var+"_y"]
+            # elimina columna auxiliar de totales
             data[i].drop([tot_var+"_y"], axis=1, inplace=True)
-            data[i].fillna(0, inplace=True) # Nan por div entre cero
+            data[i].fillna(0, inplace=True) # reemplaza NaN's por div entre cero
 
 make_probs2(suicidios, "suicidios")
 make_probs2(divorcios, "divorcios")
+
+make_probs2(mortalidad, "mortalidad")
+headdf(mortalidad)
+verify_probs(mortalidad)
+
+make_probs2(matrimonios, "matrimonios")
+headdf(matrimonios)
+verify_probs(matrimonios)
+
+make_probs2(nacimientos, "nacimientos")
+headdf(nacimientos)
+verify_probs(nacimientos)
+
+
+
+
